@@ -1,20 +1,38 @@
+import sys
+
 import pandas as pd
-import numpy as np
 import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 # 1. LOAD DATA
 # Note: In the UCI dataset, missing values are often marked as '?'
-url = "https://archive.ics.uci.edu/ml/machine-learning-databases/autos/imports-85.data"
-columns = [
+DATA_URL = "https://archive.ics.uci.edu/ml/machine-learning-databases/autos/imports-85.data"
+
+EXPECTED_COLUMNS = [
     "symboling", "normalized-losses", "make", "fuel-type", "aspiration", "num-of-doors",
     "body-style", "drive-wheels", "engine-location", "wheel-base", "length", "width",
     "height", "curb-weight", "engine-type", "num-of-cylinders", "engine-size",
     "fuel-system", "bore", "stroke", "compression-ratio", "horsepower", "peak-rpm",
     "city-mpg", "highway-mpg", "price"
 ]
-df = pd.read_csv(url, names=columns, na_values="?")
+
+MIN_EXPECTED_ROWS = 50
+
+try:
+    df = pd.read_csv(DATA_URL, names=EXPECTED_COLUMNS, na_values="?")
+except Exception as exc:
+    sys.exit(f"Failed to fetch data from {DATA_URL}: {exc}")
+
+if list(df.columns) != EXPECTED_COLUMNS:
+    sys.exit(
+        f"Schema mismatch: expected {len(EXPECTED_COLUMNS)} columns "
+        f"({EXPECTED_COLUMNS[:3]}…), got {list(df.columns)[:3]}…"
+    )
+
+if len(df) < MIN_EXPECTED_ROWS:
+    sys.exit(
+        f"Data too small: expected >= {MIN_EXPECTED_ROWS} rows, got {len(df)}. "
+        "The remote data source may be corrupted."
+    )
 
 # 2. DATA CLEANING
 # Fill missing prices with mean and convert to numeric
